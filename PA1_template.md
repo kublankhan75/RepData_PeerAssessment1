@@ -90,5 +90,87 @@ sum(!complete.cases(data))
 ```
 ## [1] 2304
 ```
+Imput missing (NA) values using the mean of each interval. We have already calculated those means in b. Use b to create a new dataset called x.
 
+```r
+#Use merge to match mean values with intervals
+x <- merge(data, b, by = "interval")
+#Then use arrange to restore row sort by date then interval
+x <- arrange(x, date, interval)
+#Then use mutate to add a column which chooses the mean if there's an NA else the original measurement
+x <- mutate(x, steps = ifelse(is.na(steps.x), steps.y, steps.x))
+#Then use select to drop unnecessary columns and restore column order
+x <- select(x, steps, date, interval)
+```
+The new dataset has no incomplete cases.
+
+```r
+sum(!complete.cases(x))
+```
+
+```
+## [1] 0
+```
+Summarize data and create histogram
+
+```r
+a2 <- summarize(group_by(x, date), sum(steps))
+names(a2) <- c("date", "steps")
+ggplot(a2, aes(steps)) + geom_histogram(binwidth = 1000) 
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
+Compare density plots between original dataset (with NA's) and imputed dataset. This is the impact of imputing data--at least via this method of imputation.
+
+```r
+#create combined summary dataset in order to place two density plots in one plot
+a$status <- 'original'
+a2$status <- 'imputed'
+a3 <- rbind(a,a2)
+ggplot(a3, aes(steps, fill = status)) + geom_density(alpha = 0.3)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+Calculate means and medians for the two datasets for comparison purposes.
+
+```r
+mean(a$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+mean(a2$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
+median(a$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10765
+```
+
+```r
+median(a2$steps, na.rm = TRUE)
+```
+
+```
+## [1] 10766.19
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
+
+```r
+#Turn warnings back on just in case
+options(warn = 0)
+```
