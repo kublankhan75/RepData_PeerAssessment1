@@ -167,8 +167,24 @@ median(a2$steps, na.rm = TRUE)
 ## [1] 10766.19
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
+Add weekday/weekend factor variable to imputed dataset and create a new dataset for simplicity
 
+```r
+y <- mutate(x, weekday = weekdays(date, abbreviate = TRUE))
+y <- mutate(y, weekpart = ifelse((weekday == "Sat" | weekday == "Sun"), "weekend", "weekday"))
+y$weekpart = as.factor(y$weekpart)
+#Relevel to replicate panel plot order
+y$weekpart = relevel(y$weekpart, "weekend")
+```
+Summarize data and create time series plot
 
+```r
+z <- summarize(group_by(y, weekpart, interval), mean(steps))
+names(z) <- c("weekpart", "interval", "steps")
+ggplot(z, aes(x = interval, y = steps)) +geom_line() + facet_wrap(~weekpart, nrow = 2)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-16-1.png) 
 
 ```r
 #Turn warnings back on just in case
